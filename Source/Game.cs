@@ -2,6 +2,7 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace MC
 {
@@ -15,11 +16,15 @@ namespace MC
     private readonly Texture _texture1;
     private readonly Texture _texture2;
     private readonly Shape _rectangle1;
-    private readonly Shape _rectangle2;
+    private readonly Shape _cube;
     private readonly Matrix4 _projection;
+
+    private float _speed = 1.5f;
+    private Vector3 _position;
+    private Vector3 _front;
+    private Vector3 _up;
     private Matrix4 _model1;
     private Matrix4 _model2;
-    private Matrix4 _view;
 
     private double _renderTime;
 
@@ -37,9 +42,12 @@ namespace MC
       _projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45.0f), _windowWidth / _windowHeight, 0.1f, 100.0f);
       _model1 = Matrix4.CreateTranslation((1f, 0.0f, 0f));
       _model2 = Matrix4.CreateTranslation((-1f, 0.0f, 0f));
-      _view = Matrix4.CreateTranslation(0.0f, 0.0f, -3.0f);
       _rectangle1 = Shape.CreateRectangle(_texture1, _shader);
-      _rectangle2 = Shape.CreateRectangle(_texture2, _shader);
+      _cube = Shape.CreateCube(_texture2, _shader);
+
+      _position = new(0.0f, 0.0f, 3.0f);
+      _front = new(0.0f, 0.0f, -1.0f);
+      _up = new(0.0f, 1.0f, 0.0f);
     }
 
     private void HandleWindowLoad()
@@ -51,26 +59,63 @@ namespace MC
       _texture1.Initialize();
       _texture2.Initialize();
       _rectangle1.Initialize();
-      _rectangle2.Initialize();
+      _cube.Initialize();
     }
-
 
     private void HandleWindowRenderFrame(FrameEventArgs e)
     {
       _renderTime += e.Time;
+      ProcessInput((float)e.Time);
       GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-      _shader.SetMatrix4("view", _view);
+      var view = Matrix4.LookAt(_position, _position + _front, _up);
+      _shader.SetMatrix4("view", view);
       _shader.SetMatrix4("projection", _projection);
 
-      _model1 = Matrix4.CreateTranslation((float)Math.Cos(_renderTime), (float)Math.Sin(_renderTime), 0.0f) * Matrix4.CreateRotationZ((float)Math.Cos(_renderTime));
       _shader.SetMatrix4("model", _model1);
       _rectangle1.Draw();
-      _model2 = Matrix4.CreateTranslation((float)Math.Sin(_renderTime), (float)Math.Cos(_renderTime), 0.0f) * Matrix4.CreateRotationZ((float)Math.Sin(_renderTime));
       _shader.SetMatrix4("model", _model2);
-      _rectangle2.Draw();
+      _cube.Draw();
 
       _window.SwapBuffers();
+    }
+
+    private void ProcessInput(float deltaTime)
+    {
+      if (!_window.IsFocused) return;
+      var isKeyDown = _window.KeyboardState.IsKeyDown;
+
+      var speed = _speed * deltaTime;
+
+      if (isKeyDown(Keys.W))
+      {
+        _position += _front * speed;
+      }
+
+      if (isKeyDown(Keys.S))
+      {
+        _position -= _front * speed;
+      }
+
+      if (isKeyDown(Keys.D))
+      {
+        _position += Vector3.Normalize(Vector3.Cross(_front, _up)) * speed;
+      }
+
+      if (isKeyDown(Keys.A))
+      {
+        _position -= Vector3.Normalize(Vector3.Cross(_front, _up)) * speed;
+      }
+
+      if (isKeyDown(Keys.Space))
+      {
+        _position += _up * speed;
+      }
+
+      if (isKeyDown(Keys.LeftShift))
+      {
+        _position -= _up * speed;
+      }
     }
 
     public Game Initialize()
