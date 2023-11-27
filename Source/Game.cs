@@ -19,7 +19,14 @@ namespace MC
     private readonly Shape _cube;
     private readonly Matrix4 _projection;
 
-    private float _speed = 1.5f;
+    private readonly float _speed = 1.5f;
+    private readonly float _sensitivity = 0.05f;
+
+    private float _yaw = -MathHelper.PiOver2;
+    private float _pitch;
+    private Vector2 _lastMousePosition;
+    private bool _isFirstMove = true;
+
     private Vector3 _position;
     private Vector3 _front;
     private Vector3 _up;
@@ -35,7 +42,10 @@ namespace MC
         Size = (_windowWidth, _windowHeight),
         Title = "Minecraft Clone"
       };
-      _window = new(GameWindowSettings.Default, windowSettings);
+      _window = new(GameWindowSettings.Default, windowSettings)
+      {
+        CursorState = CursorState.Grabbed
+      };
       _shader = new("Shaders/base.vert", "Shaders/base.frag");
       _texture1 = new("Resources/container.png");
       _texture2 = new("Resources/awesomeface.png");
@@ -65,7 +75,8 @@ namespace MC
     private void HandleWindowRenderFrame(FrameEventArgs e)
     {
       _renderTime += e.Time;
-      ProcessInput((float)e.Time);
+      // ProcessMouse();
+      ProcessKeyboard((float)e.Time);
       GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
       var view = Matrix4.LookAt(_position, _position + _front, _up);
@@ -80,7 +91,38 @@ namespace MC
       _window.SwapBuffers();
     }
 
-    private void ProcessInput(float deltaTime)
+    private void HandleWindowMouseMove(MouseMoveEventArgs e)
+    {
+      if (_window.IsFocused)
+      {
+        _window.MousePosition = (e.X + _window.Size.X / 2.0f, e.Y + _window.Size.Y / 2.0f);
+      }
+    }
+
+    private void ProcessMouse()
+    {
+      var mousePosition = _window.MousePosition;
+
+      if (_isFirstMove)
+      {
+        _lastMousePosition = mousePosition;
+        Console.WriteLine(_lastMousePosition);
+        _isFirstMove = false;
+      }
+
+      var deltaX = mousePosition.X - _lastMousePosition.X;
+      var deltaY = mousePosition.Y - _lastMousePosition.Y;
+      _lastMousePosition = mousePosition;
+
+      _yaw += deltaX * _sensitivity;
+      _pitch -= deltaY * _sensitivity;
+      var frontX = (float)(Math.Cos(MathHelper.DegreesToRadians(_pitch)) * Math.Cos(MathHelper.DegreesToRadians(_yaw)));
+      var frontY = (float)Math.Sin(MathHelper.DegreesToRadians(_pitch));
+      var frontZ = (float)(Math.Cos(MathHelper.DegreesToRadians(_pitch)) * Math.Sin(MathHelper.DegreesToRadians(_yaw)));
+      _front = Vector3.Normalize((frontX, frontY, frontZ));
+    }
+
+    private void ProcessKeyboard(float deltaTime)
     {
       if (!_window.IsFocused) return;
       var isKeyDown = _window.KeyboardState.IsKeyDown;
@@ -122,6 +164,7 @@ namespace MC
     {
       _window.Load += HandleWindowLoad;
       _window.RenderFrame += HandleWindowRenderFrame;
+      _window.MouseMove += HandleWindowMouseMove;
       return this;
     }
 
