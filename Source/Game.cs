@@ -22,8 +22,6 @@ namespace MC
     private Matrix4 _model1;
     private Matrix4 _model2;
 
-    private double _renderTime;
-
     public Game()
     {
       var windowSettings = new NativeWindowSettings()
@@ -31,7 +29,6 @@ namespace MC
         Size = (_windowWidth, _windowHeight),
         Title = "Minecraft Clone"
       };
-
 
       _window = new(GameWindowSettings.Default, windowSettings)
       {
@@ -78,15 +75,6 @@ namespace MC
     {
       var updatePayload = new UpdatePayload(_window, (float)e.Time);
       _camera.OnUpdate(updatePayload);
-      _renderTime += e.Time;
-    }
-
-    private void HandleMouseMove(MouseMoveEventArgs e)
-    {
-      if (_window.IsFocused)
-      {
-        // _window.MousePosition = (e.X + _window.Size.X / 2.0f, e.Y + _window.Size.Y / 2.0f);
-      }
     }
 
     public Game Initialize()
@@ -94,12 +82,6 @@ namespace MC
       _window.Load += HandleLoad;
       _window.RenderFrame += HandleRender;
       _window.UpdateFrame += HandleUpdate;
-      _window.MouseMove += HandleMouseMove;
-      _window.Resize += (e) =>
-      _window.UpdateFrame += HandleRender;
-      {
-
-      };
       return this;
     }
 

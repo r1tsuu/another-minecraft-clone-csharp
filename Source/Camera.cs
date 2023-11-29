@@ -12,11 +12,12 @@ namespace MC
     public float DepthFar { get; set; } = 100.0f;
 
     public float Speed { get; set; } = 1.5f;
-    public Vector3 Position { get; set; } = new(0f, 0.0f, 3.0f);
-    public Vector3 Front { get; set; } = (0.0f, 0.0f, -1.0f);
-    public Vector3 Up { get; set; } = (0.0f, 1.0f, 0.0f);
+    public Vector3 Position { get; set; } = (0f, 0.0f, 3.0f);
+    public Vector3 Front { get; set; } = Vector3.UnitZ;
+    public Vector3 Up { get; set; } = Vector3.UnitY;
+    public Vector3 Right { get; set; } = Vector3.UnitX;
 
-    public float Sensivity { get; set; } = 1.5f;
+    public float Sensivity { get; set; } = 0.3f;
     public float Yaw { get; set; } = -45.0f;
     public float Pitch { get; set; } = 45f;
 
@@ -47,10 +48,8 @@ namespace MC
       if (_lastPosition is Vector2 lastPosition)
       {
         var mouse = window.MouseState;
-        var deltaX = mouse.X - lastPosition.X;
-        var deltaY = mouse.Y - lastPosition.Y;
-        Yaw += deltaX * Sensivity;
-        var newPitch = Pitch - deltaY * Sensivity;
+        Yaw += mouse.Delta.X * Sensivity;
+        var newPitch = Pitch - mouse.Delta.Y * Sensivity;
         Pitch = newPitch switch
         {
           > 89.0f => 89.0f,
@@ -64,8 +63,12 @@ namespace MC
           Y = (float)Math.Sin(MathHelper.DegreesToRadians(Pitch)),
           Z = (float)(Math.Cos(MathHelper.DegreesToRadians(Pitch)) * Math.Sin(MathHelper.DegreesToRadians(Yaw)))
         };
+
+        Front = Vector3.Normalize(Front);
+        Right = Vector3.Normalize(Vector3.Cross(Front, Vector3.UnitY));
+        Up = Vector3.Normalize(Vector3.Cross(Right, Front));
       }
-      _lastPosition = window.MousePosition;
+      _lastPosition = (window.MouseState.X, window.MouseState.Y);
     }
 
     private void ProcessKeyboard(KeyboardState keyboard, float deltaTime)
@@ -82,12 +85,12 @@ namespace MC
 
       if (keyboard.IsKeyDown(Keys.A))
       {
-        Position -= Vector3.Normalize(Vector3.Cross(Front, Up)) * Speed * deltaTime;
+        Position -= Right * Speed * deltaTime;
       }
 
       if (keyboard.IsKeyDown(Keys.D))
       {
-        Position += Vector3.Normalize(Vector3.Cross(Front, Up)) * Speed * deltaTime;
+        Position += Right * Speed * deltaTime;
       }
 
       if (keyboard.IsKeyDown(Keys.Space))
