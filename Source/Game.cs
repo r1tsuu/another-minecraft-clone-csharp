@@ -1,6 +1,5 @@
 using MC.Api;
 using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 
@@ -16,11 +15,8 @@ namespace MC
     private readonly Shader _shader;
     private readonly Texture _texture1;
     private readonly Texture _texture2;
-    private readonly Shape _rectangle1;
-    private readonly Shape _cube;
-
-    private Matrix4 _model1;
-    private Matrix4 _model2;
+    private readonly Graphics _graphics;
+    private readonly List<MeshData> _cubes = [];
 
     public Game()
     {
@@ -38,10 +34,19 @@ namespace MC
       _shader = new("Shaders/base.vert", "Shaders/base.frag");
       _texture1 = new("Resources/container.png");
       _texture2 = new("Resources/awesomeface.png");
-      _model1 = Matrix4.CreateTranslation((1f, 0.0f, 0f));
-      _model2 = Matrix4.CreateTranslation((-1f, 0.0f, 0f));
-      _rectangle1 = Shape.CreateRectangle(_texture1, _shader);
-      _cube = Shape.CreateCube(_texture2, _shader);
+      _graphics = new(_camera);
+
+      for (int x = 0; x < 100; x++)
+      {
+        for (int z = 0; z < 100; z++)
+        {
+          _cubes.Add(new MeshData()
+          {
+            Position = (x, 0.0f, z),
+            Texture = (x + z) % 2 == 0 ? _texture1 : _texture2
+          });
+        }
+      }
     }
 
     private void HandleLoad()
@@ -49,25 +54,16 @@ namespace MC
       GL.ClearColor(0f, 0.3f, 0.3f, 1.0f);
       GL.Enable(EnableCap.DepthTest);
 
-      _shader.Initialize();
+      Graphics.Initialize();
+
       _texture1.Initialize();
       _texture2.Initialize();
-      _rectangle1.Initialize();
-      _cube.Initialize();
     }
 
     private void HandleRender(FrameEventArgs e)
     {
       GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-      _shader.SetMatrix4("view", _camera.GetView());
-      _shader.SetMatrix4("projection", _camera.GetProjection());
-
-      _shader.SetMatrix4("model", _model1);
-      _rectangle1.Draw();
-      _shader.SetMatrix4("model", _model2);
-      _cube.Draw();
-
+      _cubes.ForEach(cube => _graphics.DrawCube(cube));
       _window.SwapBuffers();
     }
 

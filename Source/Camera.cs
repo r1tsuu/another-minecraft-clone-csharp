@@ -12,7 +12,7 @@ namespace MC
     public float DepthFar { get; set; } = 100.0f;
 
     public float Speed { get; set; } = 1.5f;
-    public Vector3 Position { get; set; } = (0f, 0.0f, 3.0f);
+    public Vector3 Position { get; set; } = (5.0f, 1.0f, 6.0f);
     public Vector3 Front { get; set; } = Vector3.UnitZ;
     public Vector3 Up { get; set; } = Vector3.UnitY;
     public Vector3 Right { get; set; } = Vector3.UnitX;

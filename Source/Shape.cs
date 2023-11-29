@@ -6,17 +6,13 @@ namespace MC
   {
     private readonly float[] _vertices;
     private readonly uint[] _indices;
-    private Texture _texture;
-    public Texture Texture { get => _texture; set => _texture = value; }
-    private Shader _shader;
-    public Shader Shader { get => _shader; set => _shader = value; }
     private int _vertexArrayObject;
+    private readonly Shader _shader;
 
-    public Shape(float[] vertices, uint[] indices, Texture texture, Shader shader)
+    public Shape(float[] vertices, uint[] indices, Shader shader)
     {
       _vertices = vertices;
       _indices = indices;
-      _texture = texture;
       _shader = shader;
     }
 
@@ -45,12 +41,10 @@ namespace MC
     public void Draw()
     {
       GL.BindVertexArray(_vertexArrayObject);
-      _texture.Use(TextureUnit.Texture0);
-      _shader.Use();
       GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
     }
 
-    public static Shape CreateRectangle(Texture texture, Shader shader)
+    public static Shape CreateRectangle(Shader shader)
     {
       float[] vertices = [
         // verices          // textures
@@ -65,10 +59,10 @@ namespace MC
         1, 2, 3
       ];
 
-      return new Shape(vertices, indices, texture, shader);
+      return new Shape(vertices, indices, shader);
     }
 
-    public static Shape CreateCube(Texture texture, Shader shader)
+    public static Shape CreateCube(Shader shader)
     {
       float[] vertices = [
         // position           // texCoord
@@ -118,7 +112,7 @@ namespace MC
         22, 23, 20
       ];
 
-      return new Shape(vertices, indices, texture, shader);
+      return new Shape(vertices, indices, shader);
     }
   }
 }
