@@ -86,6 +86,11 @@ namespace MC
       GL.UniformMatrix4(location, true, ref value);
     }
 
+    public void SetBool(string name, bool value)
+    {
+      SetInt(name, value ? 1 : 0);
+    }
+
     public void Use()
     {
       GL.UseProgram(_handle);

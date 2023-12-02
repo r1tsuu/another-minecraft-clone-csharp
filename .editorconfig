@@ -24,3 +24,4 @@ insert_final_newline = true
 
 # dotnet_analyzer_diagnostic.category-CodeQuality.severity = none
 csharp_style_prefer_primary_constructors = false
+dotnet_diagnostic.IDE0028.severity = none
